@@ -170,7 +170,7 @@ pub async fn query_builder(
 async fn get_artist_details(
     client: &reqwest::Client,
     access_credentials: &str,
-) {
+) -> SpotifyArtist {
     let mut query_string = String::new();
     println!("Please enter the artist you wish to query.");
     std::io::stdin().read_line(&mut query_string).unwrap();
@@ -190,11 +190,11 @@ async fn get_artist_details(
         .await.
         unwrap();
 
-    dbg!(&response);
+    // dbg!(&response);
 
     let artist_details: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
 
-    dbg!(&artist_details);
+    return artist_details;
 
     // let album_type = &artist_details.items.get("album").unwrap().album.get("album_type").unwrap().album_type;
     //
