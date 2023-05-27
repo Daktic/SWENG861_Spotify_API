@@ -2,7 +2,7 @@ use reqwest;
 use std::collections::HashMap;
 use serde_urlencoded;
 use serde_json;
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use reqwest::Client;
@@ -14,18 +14,18 @@ pub struct AccessCode {
     expires_in: u16,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SpotifyArtist {
     artists: Artists,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Artists {
     href: String,
     items: Vec<Artist>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Artist {
     external_urls: ExternalUrls,
     followers: Followers,
@@ -35,7 +35,7 @@ struct Artist {
     images: Vec<Image>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct TrackArtist {
     external_urls: ExternalUrls,
     followers: Option<Followers>,
@@ -45,30 +45,30 @@ struct TrackArtist {
     images: Option<Vec<Image>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct ExternalUrls {
     spotify: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Followers {
     href: Option<String>,
     total: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Image {
     height: Option<i32>,
     url: String,
     width: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SpotifyTrack {
     tracks: Tracks,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Tracks {
     href: String,
     limit: u16,
@@ -79,31 +79,31 @@ struct Tracks {
     items: Vec<TrackItems>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct TrackItems {
     album: AlbumItems,
     artists: Vec<TrackArtist>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct AlbumItemRestrictions {
     reason: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct AlbumItemCopyrights {
     text: String,
     r#type: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct AlbumItemExternalIds {
     isrc: String,
     ean: String,
     upc: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct AlbumItems {
     album_type: String,
     total_tracks: u16,
