@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 use dotenv::dotenv;
+use serde_json;
 
 mod spotify;
 
@@ -7,7 +8,7 @@ mod spotify;
 use actix_web::{middleware, web, App, HttpRequest, HttpServer};
 
 
-async fn index(req: HttpRequest) -> &'static str {
+async fn index(req: HttpRequest) -> String {
     println!("REQ: {req:?}");
     let client = reqwest::Client::new();
 
@@ -24,10 +25,14 @@ async fn index(req: HttpRequest) -> &'static str {
 
 
     let artist = spotify::query_builder("test", &client, &access_credentials.access_token, 1);
-    let response = "Hello, World!";
+    let mut response: String = String::from("Hello, World!");
     match artist.await {
         spotify::QueryResult::Artists(spotify_artist) => {
-            dbg!(spotify_artist);
+            // Serialize spotify_artist into a JSON string
+            if let Ok(json_str) = serde_json::to_string(&spotify_artist) {
+                // Update the response value with the JSON string
+                response = json_str;
+            }
         }
         spotify::QueryResult::Tracks(_) => {
             // Handle the case when the type_of_search is 2 (tracks)
