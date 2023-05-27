@@ -207,7 +207,7 @@ async fn get_artist_details(
     // dbg!(&response);
 
     let artist_details: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
-    dbg!(&artist_details);
+    //dbg!(&artist_details);
 
     return artist_details;
 }
