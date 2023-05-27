@@ -1,25 +1,8 @@
+use std::fmt::Debug;
 use dotenv::dotenv;
 
 mod spotify;
 
-
-// // tokio let's us use "async" on our main function
-// #[tokio::main]
-// async fn main() {
-//     let client = reqwest::Client::new();
-//
-//     //load in the dotenv
-//     dotenv().ok();
-//
-//     let client_secret = std::env::var("CLIENT_SECRET").unwrap();
-//     let client_id = std::env::var("CLIENT_ID").unwrap();
-//
-//     let access_credentials = spotify::get_auth_code(
-//         &client,
-//         &client_id,
-//         &client_secret,
-//     ).await;
-// }
 
 use actix_web::{middleware, web, App, HttpRequest, HttpServer};
 
@@ -38,8 +21,25 @@ async fn index(req: HttpRequest) -> &'static str {
         &client_id,
         &client_secret,
     ).await;
-    let artist = spotify::query_builder(&client, &access_credentials.unwrap(), 1);
-    "Hello world?"
+
+
+    let artist = spotify::query_builder("test", &client, &access_credentials.access_token, 1);
+    let response = "Hello, World!";
+    match artist.await {
+        spotify::QueryResult::Artists(spotify_artist) => {
+            dbg!(spotify_artist);
+        }
+        spotify::QueryResult::Tracks(_) => {
+            // Handle the case when the type_of_search is 2 (tracks)
+            println!("Expected artist details, but received track details.");
+        }
+        spotify::QueryResult::Error => {
+            // Handle the error case or empty variant
+            println!("Not a proper search param.");
+        }
+    }
+
+    response
 }
 
 #[actix_web::main]

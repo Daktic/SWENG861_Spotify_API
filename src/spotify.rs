@@ -15,7 +15,7 @@ pub struct AccessCode {
 }
 
 #[derive(Debug, Deserialize)]
-struct SpotifyArtist {
+pub struct SpotifyArtist {
     artists: Artists,
 }
 
@@ -64,7 +64,7 @@ struct Image {
 }
 
 #[derive(Debug, Deserialize)]
-struct SpotifyTrack {
+pub struct SpotifyTrack {
     tracks: Tracks,
 }
 
@@ -127,6 +127,7 @@ struct AlbumItems {
 
 }
 
+
 fn create_client() -> Client {
     reqwest::Client::new()
 }
@@ -155,25 +156,38 @@ pub(crate) async fn get_auth_code(
     access_credentials
 }
 
+pub enum QueryResult {
+    Artists(SpotifyArtist),
+    Tracks(SpotifyTrack),
+    Error,
+}
+
 pub async fn query_builder(
+    query: &str,
     client: &reqwest::Client,
     access_credentials: &str,
     type_of_search: u8,
-) {
+) -> QueryResult {
     match type_of_search {
-        1 => get_artist_details(client, access_credentials).await,
-        2 => get_song_details(client, access_credentials).await,
-        _ => println!("Not a proper search param.")
+        1 => QueryResult::Artists(get_artist_details(query, client, access_credentials).await),
+        2 => QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
+        _ => {
+            println!("Not a proper search param.");
+            // Return a default value or handle the invalid case accordingly
+            // Here, I'm returning an empty enum variant as an example
+            QueryResult::Error
+        }
     }
 }
 
 async fn get_artist_details(
+    query_string: &str,
     client: &reqwest::Client,
     access_credentials: &str,
 ) -> SpotifyArtist {
-    let mut query_string = String::new();
-    println!("Please enter the artist you wish to query.");
-    std::io::stdin().read_line(&mut query_string).unwrap();
+    // let mut query_string = String::new();
+    // println!("Please enter the artist you wish to query.");
+    // std::io::stdin().read_line(&mut query_string).unwrap();
 
     let url = format!("https://api.spotify.com/v1/search?q={query}&type=artist&offset=0&limit=20",
                       query = query_string);
@@ -193,21 +207,19 @@ async fn get_artist_details(
     // dbg!(&response);
 
     let artist_details: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
+    dbg!(&artist_details);
 
     return artist_details;
-
-    // let album_type = &artist_details.items.get("album").unwrap().album.get("album_type").unwrap().album_type;
-    //
-    // println!("{}", album_type);
 }
 
 async fn get_song_details(
+    query_string: &str,
     client: &reqwest::Client,
     access_credentials: &str,
-) {
-    let mut query_string = String::new();
-    println!("Please enter the song you wish to query.");
-    std::io::stdin().read_line(&mut query_string).unwrap();
+) -> SpotifyTrack {
+    // let mut query_string = String::new();
+    // println!("Please enter the song you wish to query.");
+    // std::io::stdin().read_line(&mut query_string).unwrap();
 
     let url = format!("https://api.spotify.com/v1/search?q={query}&type=track&offset=0&limit=20",
                       query = query_string);
@@ -223,9 +235,8 @@ async fn get_song_details(
         .await.
         unwrap();
 
-    //dbg!(&response);
+
     let song_details: SpotifyTrack = serde_json::from_str(&response).expect("Failed to deserialize response");
-    for i in 0..song_details.tracks.items.len() {
-        dbg!(&song_details.tracks.items.get(i).unwrap().artists);
-    }
+
+    return song_details;
 }
