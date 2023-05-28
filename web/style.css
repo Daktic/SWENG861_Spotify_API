@@ -1,0 +1,11 @@
+h1 {
+    color: springgreen;
+}
+
+h1 span {
+    color: black;
+}
+
+button {
+    margin-top: 5px;
+}
