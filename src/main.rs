@@ -1,14 +1,20 @@
 use std::fmt::Debug;
 use dotenv::dotenv;
 use serde_json;
+use actix_cors::Cors;
 
 mod spotify;
 
 
-use actix_web::{middleware, web, App, HttpRequest, HttpServer, Result};
+use actix_web::{middleware, web, App, HttpRequest, HttpServer, Result, HttpResponse, get, Responder, http};
 use actix_files::NamedFile;
 use std::path::PathBuf;
 
+
+#[get("/artist")]
+async fn artist() -> impl Responder {
+    HttpResponse::Ok().body("Hello world!")
+}
 
 async fn index(req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./web/index.html".parse().unwrap();
@@ -57,12 +63,22 @@ async fn main() -> std::io::Result<()> {
 
     log::info!("starting HTTP server at http://localhost:8080");
 
+
     HttpServer::new(|| {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:63342")
+            .allowed_methods(vec!["GET"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+            .allowed_header(http::header::CONTENT_TYPE)
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .wrap(middleware::Logger::default())
-            .service(web::resource("/index.html").to(|| async { "Hello world!" }))
-            .service(actix_files::Files::new("/index.html", "./web").show_files_listing())
             .service(web::resource("/").to(index))
+            .service(actix_files::Files::new("/", "./web").show_files_listing())
+            .service(web::resource("/index.html").to(|| async { "Hello world!" }))
+            .service(artist)
     })
         .bind(("127.0.0.1", 8080))?
         .run()
