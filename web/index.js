@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
         })
     });
 
-    const url = 'http://localhost:8080';
+    const url = 'http://localhost:8080/artist';
 
     button.addEventListener("click", function () {
         fetch(url)
@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
             })
             .catch(error => {
                 // Handle any errors that occurred during the request
+                console.log("failed here")
                 console.error(error);
             });
     });
