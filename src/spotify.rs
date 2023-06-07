@@ -142,7 +142,7 @@ async fn get_access_credentials(client: &reqwest::Client) -> AccessCode {
             .expect("Did not find Client ID"),
         &env::var("CLIENT_SECRET")
             .expect("Did not find Client SECRET"),
-    )
+    ).await
 }
 
 async fn get_auth_code(
@@ -177,13 +177,12 @@ pub enum QueryResult {
 
 pub async fn query_builder(
     query: &str,
-    client: &reqwest::Client,
-    access_credentials: &str,
     type_of_search: u8,
 ) -> QueryResult {
     match type_of_search {
         1 => QueryResult::Artists(get_artist_details(query).await),
-        2 => QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
+        //TODO make 2 like 1, remove the other params
+        2 => QueryResult::Artists(get_artist_details(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
         _ => {
             println!("Not a proper search param.");
             // Return a default value or handle the invalid case accordingly
@@ -197,14 +196,14 @@ async fn get_artist_details(
     query_string: &str,
 ) -> SpotifyArtist {
     let client = create_client();
-    let access_credentials = get_access_credentials(&client);
+    let access_credentials = get_access_credentials(&client).await;
 
     let url = format!("https://api.spotify.com/v1/search?q={query}&type=artist&offset=0&limit=20",
                       query = query_string);
 
     let response = client
         .get(url)
-        .header("AUTHORIZATION", "Bearer ".to_owned() + access_credentials)
+        .header("AUTHORIZATION", "Bearer ".to_owned() + &access_credentials.access_token)
         .header("CONTENT_TYPE", "application/json")
         .header("ACCEPT", "application/json")
         .send()
