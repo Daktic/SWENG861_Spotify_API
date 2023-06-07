@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use dotenv::dotenv;
 use serde_json;
 use actix_cors::Cors;
+use serde::Serialize;
 
 mod spotify;
 
@@ -10,52 +11,43 @@ use actix_web::{middleware, web, App, HttpRequest, HttpServer, Result, HttpRespo
 use actix_files::NamedFile;
 use std::path::PathBuf;
 
+#[derive(serde::Deserialize)]
+struct ArtistQueryParams {
+    artist_name: String,
+}
+
+#[derive(serde::Serialize)]
+struct ArtistResponse {
+    name: String,
+}
 
 #[get("/artist")]
 async fn artist() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+    let name = "test".to_string();
+    let spotify_artist_query:spotify::QueryResult::Artists = spotify::query_builder(
+        "test".to_str(),
+        1
+    )
+    let artist_response = ArtistResponse { name };
+
+    let json_response = serde_json::to_string(&artist_response).unwrap();
+
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(json_response)
 }
+// #[get("/artist")]
+// async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
+//     let name = query_params.artist_name.to_string(); // Replace "name" with the actual artist name
+//     println!("The name from the fetch request is {}", &name);
+//     HttpResponse::Ok().body(format!("Name: {}", name))
+// }
 
 async fn index(req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./web/index.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
-
-    //let client = reqwest::Client::new();
-
-    // //load in the dotenv
-    // dotenv().ok();
-    // let client_secret = std::env::var("CLIENT_SECRET").unwrap();
-    // let client_id = std::env::var("CLIENT_ID").unwrap();
-    //
-    // let access_credentials = spotify::get_auth_code(
-    //     &client,
-    //     &client_id,
-    //     &client_secret,
-    // ).await;
-    //
-    //
-    // let artist = spotify::query_builder("test", &client, &access_credentials.access_token, 1);
-    // let mut response: String = String::from("Hello, World!");
-    // match artist.await {
-    //     spotify::QueryResult::Artists(spotify_artist) => {
-    //         // Serialize spotify_artist into a JSON string
-    //         if let Ok(json_str) = serde_json::to_string(&spotify_artist) {
-    //             // Update the response value with the JSON string
-    //             response = json_str;
-    //         }
-    //     }
-    //     spotify::QueryResult::Tracks(_) => {
-    //         // Handle the case when the type_of_search is 2 (tracks)
-    //         println!("Expected artist details, but received track details.");
-    //     }
-    //     spotify::QueryResult::Error => {
-    //         // Handle the error case or empty variant
-    //         println!("Not a proper search param.");
-    //     }
-    // }
-    //
-    // response
 }
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -75,10 +67,10 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .wrap(middleware::Logger::default())
+            .service(artist)
             .service(web::resource("/").to(index))
             .service(actix_files::Files::new("/", "./web").show_files_listing())
             .service(web::resource("/index.html").to(|| async { "Hello world!" }))
-            .service(artist)
     })
         .bind(("127.0.0.1", 8080))?
         .run()
