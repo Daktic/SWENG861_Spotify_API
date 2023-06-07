@@ -24,10 +24,10 @@ struct ArtistResponse {
 #[get("/artist")]
 async fn artist() -> impl Responder {
     let name = "test".to_string();
-    let spotify_artist_query:spotify::QueryResult::Artists = spotify::query_builder(
-        "test".to_str(),
-        1
-    )
+    let spotify_artist_query: spotify::QueryResult = spotify::query_builder(
+        "test",
+        1,
+    ).await;
     let artist_response = ArtistResponse { name };
 
     let json_response = serde_json::to_string(&artist_response).unwrap();
