@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use reqwest::Client;
+use dotenv::dotenv;
+use std::env;
 
 #[derive(Deserialize, Debug)]
 pub struct AccessCode {
@@ -132,7 +134,18 @@ fn create_client() -> Client {
     reqwest::Client::new()
 }
 
-pub(crate) async fn get_auth_code(
+async fn get_access_credentials(client: &reqwest::Client) -> AccessCode {
+    dotenv::dotenv();
+    get_auth_code(
+        client,
+        &env::var("CLIENT_ID")
+            .expect("Did not find Client ID"),
+        &env::var("CLIENT_SECRET")
+            .expect("Did not find Client SECRET"),
+    )
+}
+
+async fn get_auth_code(
     client: &reqwest::Client,
     client_id: &str,
     client_secret: &str,
@@ -169,7 +182,7 @@ pub async fn query_builder(
     type_of_search: u8,
 ) -> QueryResult {
     match type_of_search {
-        1 => QueryResult::Artists(get_artist_details(query, client, access_credentials).await),
+        1 => QueryResult::Artists(get_artist_details(query).await),
         2 => QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
         _ => {
             println!("Not a proper search param.");
@@ -182,12 +195,9 @@ pub async fn query_builder(
 
 async fn get_artist_details(
     query_string: &str,
-    client: &reqwest::Client,
-    access_credentials: &str,
 ) -> SpotifyArtist {
-    // let mut query_string = String::new();
-    // println!("Please enter the artist you wish to query.");
-    // std::io::stdin().read_line(&mut query_string).unwrap();
+    let client = create_client();
+    let access_credentials = get_access_credentials(&client);
 
     let url = format!("https://api.spotify.com/v1/search?q={query}&type=artist&offset=0&limit=20",
                       query = query_string);
