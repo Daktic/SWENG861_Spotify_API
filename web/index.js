@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
     const url = 'http://localhost:8080/artist';
 
     button.addEventListener("click", function () {
-        fetch(url)
+        const fullURL = url + "?artist_name=" + button.innerText
+        fetch(fullURL)
             .then(response => response.json())
             .then(data => {
                 // Process the data returned from the API
