@@ -12,146 +12,6 @@ use tokio::task;
 use std::sync::{Arc, Mutex};
 
 
-#[derive(Deserialize, Debug)]
-pub struct AccessCode {
-    pub access_token: String,
-    token_type: String,
-    expires_in: u16,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct SpotifyArtist {
-    artists: QueryArtists,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct QueryArtists {
-    href: String,
-    items: Vec<QueryArtist>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct QueryArtist {
-    external_urls: ExternalUrls,
-    followers: Followers,
-    genres: Vec<String>,
-    href: String,
-    id: String,
-    images: Vec<Image>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Artists {
-    artists: Vec<Artist>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct Artist {
-    external_urls: ExternalUrls,
-    followers: Followers,
-    genres: Vec<String>,
-    href: String,
-    id: String,
-    images: Vec<Image>,
-    name: String,
-    popularity: u32,
-    r#type: String,
-    uri: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TrackArtist {
-    external_urls: ExternalUrls,
-    followers: Option<Followers>,
-    genres: Option<Vec<String>>,
-    href: String,
-    id: String,
-    images: Option<Vec<Image>>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct ExternalUrls {
-    spotify: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct Followers {
-    href: Option<String>,
-    total: i32,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct Image {
-    height: Option<i32>,
-    url: String,
-    width: Option<i32>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct SpotifyTrack {
-    tracks: Tracks,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Tracks {
-    href: String,
-    limit: u16,
-    next: Option<String>,
-    offset: u16,
-    previous: Option<String>,
-    total: u32,
-    items: Vec<TrackItems>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TrackItems {
-    album: AlbumItems,
-    artists: Vec<TrackArtist>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct AlbumItemRestrictions {
-    reason: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct AlbumItemCopyrights {
-    text: String,
-    r#type: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct AlbumItemExternalIds {
-    isrc: String,
-    ean: String,
-    upc: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct AlbumItems {
-    album_type: String,
-    total_tracks: u16,
-    available_markets: Vec<String>,
-    external_urls: ExternalUrls,
-    href: String,
-    id: String,
-    images: Vec<Image>,
-    name: String,
-    release_date: String,
-    release_date_precision: String,
-    restrictions: Option<Vec<AlbumItemRestrictions>>,
-    r#type: String,
-    uri: String,
-    copyrights: Option<Vec<AlbumItemCopyrights>>,
-    external_ids: Option<Vec<AlbumItemExternalIds>>,
-    genres: Option<Vec<String>>,
-    label: Option<String>,
-    popularity: Option<u32>,
-    album_group: Option<String>,
-
-}
-
-
 fn create_client() -> Client {
     reqwest::Client::new()
 }
@@ -341,5 +201,145 @@ async fn get_song_details(
     let song_details: SpotifyTrack = serde_json::from_str(&response).expect("Failed to deserialize response");
 
     return song_details;
+}
+
+
+#[derive(Deserialize, Debug)]
+pub struct AccessCode {
+    pub access_token: String,
+    token_type: String,
+    expires_in: u16,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SpotifyArtist {
+    artists: QueryArtists,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct QueryArtists {
+    href: String,
+    items: Vec<QueryArtist>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct QueryArtist {
+    external_urls: ExternalUrls,
+    followers: Followers,
+    genres: Vec<String>,
+    href: String,
+    id: String,
+    images: Vec<Image>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Artists {
+    artists: Vec<Artist>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct Artist {
+    external_urls: ExternalUrls,
+    followers: Followers,
+    genres: Vec<String>,
+    href: String,
+    id: String,
+    images: Vec<Image>,
+    name: String,
+    popularity: u32,
+    r#type: String,
+    uri: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct TrackArtist {
+    external_urls: ExternalUrls,
+    followers: Option<Followers>,
+    genres: Option<Vec<String>>,
+    href: String,
+    id: String,
+    images: Option<Vec<Image>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct ExternalUrls {
+    spotify: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct Followers {
+    href: Option<String>,
+    total: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct Image {
+    height: Option<i32>,
+    url: String,
+    width: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SpotifyTrack {
+    tracks: Tracks,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Tracks {
+    href: String,
+    limit: u16,
+    next: Option<String>,
+    offset: u16,
+    previous: Option<String>,
+    total: u32,
+    items: Vec<TrackItems>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct TrackItems {
+    album: AlbumItems,
+    artists: Vec<TrackArtist>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AlbumItemRestrictions {
+    reason: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AlbumItemCopyrights {
+    text: String,
+    r#type: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AlbumItemExternalIds {
+    isrc: String,
+    ean: String,
+    upc: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AlbumItems {
+    album_type: String,
+    total_tracks: u16,
+    available_markets: Vec<String>,
+    external_urls: ExternalUrls,
+    href: String,
+    id: String,
+    images: Vec<Image>,
+    name: String,
+    release_date: String,
+    release_date_precision: String,
+    restrictions: Option<Vec<AlbumItemRestrictions>>,
+    r#type: String,
+    uri: String,
+    copyrights: Option<Vec<AlbumItemCopyrights>>,
+    external_ids: Option<Vec<AlbumItemExternalIds>>,
+    genres: Option<Vec<String>>,
+    label: Option<String>,
+    popularity: Option<u32>,
+    album_group: Option<String>,
+
 }
 
