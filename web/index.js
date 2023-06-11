@@ -1,19 +1,25 @@
 document.addEventListener("DOMContentLoaded", function (event) {
     const button = document.getElementById("submit-btn");
-    const text = document.getElementById("text-input");
+    const radio = document.getElementById("query-type");
+    const textInput = document.getElementById("text-input")
 
     const radioInputs = document.querySelectorAll('input[name="query-type"]');
 
     radioInputs.forEach((radioInput) => {
         radioInput.addEventListener("click", function () {
-            text.innerText = `Search ${radioInput.value}`;
+            radio.value = `Search ${radioInput.value}`;
         })
     });
 
     const url = 'http://localhost:8080/artist';
 
-    button.addEventListener("click", function () {
-        const fullURL = url + "?artist_name=" + button.innerText
+    button.addEventListener("click", function (event) {
+
+        event.preventDefault();
+
+        console.log(textInput.value)
+
+        const fullURL = url + "?artist_name=" + textInput.value
         fetch(fullURL)
             .then(response => response.json())
             .then(data => {
