@@ -21,14 +21,11 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(fullURL)
             .then(response => response.json())
             .then(data => {
-                // Process the data returned from the API
-                console.log(data);
                 // Get the container element
                 const container = document.getElementById('artists-container');
 
                 // Iterate over each artist object
                 data.artists.forEach(artist => {
-                    console.log(artist)
                     // Create elements to display artist information
                     const artistElement = document.createElement('div');
                     const nameElement = document.createElement('h2');
@@ -51,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => {
                 // Handle any errors that occurred during the request
-                console.log("failed here")
                 console.error(error);
             });
     });
