@@ -22,7 +22,7 @@ pub struct SpotifyArtist {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Artists {
+pub struct Artists {
     href: String,
     items: Vec<Artist>,
 }
@@ -248,4 +248,13 @@ async fn get_song_details(
     let song_details: SpotifyTrack = serde_json::from_str(&response).expect("Failed to deserialize response");
 
     return song_details;
+}
+
+impl QueryResult {
+    pub fn get_artist(&self) -> Option<&SpotifyArtist> {
+        match self {
+            QueryResult::Artists(artist) => Some(artist),
+            _ => None,
+        }
+    }
 }
