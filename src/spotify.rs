@@ -8,6 +8,9 @@ use std::io::Write;
 use reqwest::Client;
 use dotenv::dotenv;
 use std::env;
+use tokio::task;
+use std::sync::{Arc, Mutex};
+
 
 #[derive(Deserialize, Debug)]
 pub struct AccessCode {
@@ -18,16 +21,31 @@ pub struct AccessCode {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SpotifyArtist {
-    artists: Artists,
+    artists: QueryArtists,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct QueryArtists {
+    href: String,
+    items: Vec<QueryArtist>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct QueryArtist {
+    external_urls: ExternalUrls,
+    followers: Followers,
+    genres: Vec<String>,
+    href: String,
+    id: String,
+    images: Vec<Image>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Artists {
-    href: String,
-    items: Vec<Artist>,
+    artists: Vec<Artist>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Artist {
     external_urls: ExternalUrls,
     followers: Followers,
@@ -35,6 +53,10 @@ struct Artist {
     href: String,
     id: String,
     images: Vec<Image>,
+    name: String,
+    popularity: u32,
+    r#type: String,
+    uri: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -47,18 +69,18 @@ struct TrackArtist {
     images: Option<Vec<Image>>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct ExternalUrls {
     spotify: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Followers {
     href: Option<String>,
     total: i32,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Image {
     height: Option<i32>,
     url: String,
@@ -170,9 +192,18 @@ async fn get_auth_code(
 }
 
 pub enum QueryResult {
-    Artists(SpotifyArtist),
+    QueryArtists(Artists),
     Tracks(SpotifyTrack),
     Error,
+}
+
+impl QueryResult {
+    pub fn get_artist(&self) -> Option<&Artists> {
+        match self {
+            QueryResult::QueryArtists(artist) => Some(artist),
+            _ => None,
+        }
+    }
 }
 
 pub async fn query_builder(
@@ -180,9 +211,9 @@ pub async fn query_builder(
     type_of_search: u8,
 ) -> QueryResult {
     match type_of_search {
-        1 => QueryResult::Artists(get_artist_details(query).await),
+        1 => QueryResult::QueryArtists(get_artists(query).await),
         //TODO make 2 like 1, remove the other params
-        2 => QueryResult::Artists(get_artist_details(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
+        2 => QueryResult::QueryArtists(get_artists(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
         _ => {
             println!("Not a proper search param.");
             // Return a default value or handle the invalid case accordingly
@@ -192,7 +223,14 @@ pub async fn query_builder(
     }
 }
 
-async fn get_artist_details(
+async fn get_artists(query_string: &str) -> Artists {
+    let artist_ids = get_artist_ids(query_string.as_ref()).await;
+    let artists = get_artists_details(&artist_ids).await;
+
+    artists
+}
+
+async fn get_artist_ids(
     query_string: &str,
 ) -> SpotifyArtist {
     let client = create_client();
@@ -218,7 +256,62 @@ async fn get_artist_details(
     let artist_details: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
     //dbg!(&artist_details);
 
+
     return artist_details;
+}
+
+async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
+    let artists = &spotify_artist.artists.items;
+
+    let mut tasks = vec![];
+
+    let artist_vec = Arc::new(Mutex::new(vec![]));
+
+    for artist in artists {
+        let artist_id = artist.id.clone(); // Clone the artist ID
+        let artist_vec_clone = Arc::clone(&artist_vec);
+
+        let task = task::spawn(async move {
+            let artist_details = get_artist_details(&artist_id).await;
+
+            let mut lock = artist_vec_clone.lock().unwrap();
+            lock.push(artist_details);
+        });
+
+        tasks.push(task);
+    }
+
+    for task in tasks {
+        task.await.unwrap();
+    }
+
+    let artists = Artists {
+        artists: artist_vec.lock().unwrap().clone(),
+    };
+
+    artists
+}
+
+async fn get_artist_details(artist_id: &str) -> Artist {
+    let client = create_client();
+    let access_credentials = get_access_credentials(&client).await;
+    let url = format!("https://api.spotify.com/v1/artists/{artist_id}");
+
+    let response = client
+        .get(url)
+        .header("AUTHORIZATION", "Bearer ".to_owned() + &access_credentials.access_token)
+        .header("CONTENT_TYPE", "application/json")
+        .header("ACCEPT", "application/json")
+        .send()
+        .await
+        .expect("Failed to execute get request")
+        .text()
+        .await.
+        unwrap();
+
+    let artist: Artist = serde_json::from_str(&response).unwrap();
+
+    return artist;
 }
 
 async fn get_song_details(
@@ -250,11 +343,3 @@ async fn get_song_details(
     return song_details;
 }
 
-impl QueryResult {
-    pub fn get_artist(&self) -> Option<&SpotifyArtist> {
-        match self {
-            QueryResult::Artists(artist) => Some(artist),
-            _ => None,
-        }
-    }
-}

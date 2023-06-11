@@ -10,7 +10,7 @@ mod spotify;
 use actix_web::{middleware, web, App, HttpRequest, HttpServer, Result, HttpResponse, get, Responder, http};
 use actix_files::NamedFile;
 use std::path::PathBuf;
-use crate::spotify::SpotifyArtist;
+use crate::spotify::Artists;
 
 #[derive(serde::Deserialize)]
 struct ArtistQueryParams {
@@ -29,7 +29,7 @@ async fn artist() -> impl Responder {
         "test",
         1,
     ).await;
-    let spotify_artist: &spotify::SpotifyArtist = spotify_artist_query.get_artist().unwrap();
+    let spotify_artist: &spotify::Artists = spotify_artist_query.get_artist().unwrap();
     let artist_response = ArtistResponse { name };
 
     let json_response = serde_json::to_string(spotify_artist).unwrap();
