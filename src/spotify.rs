@@ -87,7 +87,7 @@ async fn get_artists(query_string: &str) -> Artists {
     let artist_ids = get_artist_ids(query_string.as_ref()).await;
     let mut artists = get_artists_details(&artist_ids).await;
     // This line takes the artist:Artists and sorts the Artists.artists vec by followers in descending order.
-    artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total))
+    artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total));
     artists
 }
 
