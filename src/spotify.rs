@@ -60,7 +60,7 @@ pub enum QueryResult {
 impl QueryResult {
     pub fn get_artist(&self) -> Option<&Artists> {
         match self {
-            QueryResult::QueryArtists(artist) => Some(artist),
+            QueryResult::QueryArtists(artists) => Some(artists),
             _ => None,
         }
     }
@@ -85,8 +85,9 @@ pub async fn query_builder(
 
 async fn get_artists(query_string: &str) -> Artists {
     let artist_ids = get_artist_ids(query_string.as_ref()).await;
-    let artists = get_artists_details(&artist_ids).await;
-
+    let mut artists = get_artists_details(&artist_ids).await;
+    // This line takes the artist:Artists and sorts the Artists.artists vec by followers in descending order.
+    artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total))
     artists
 }
 
@@ -113,11 +114,11 @@ async fn get_artist_ids(
 
     // dbg!(&response);
 
-    let artist_details: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
+    let artists: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
     //dbg!(&artist_details);
 
 
-    return artist_details;
+    return artists;
 }
 
 async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
