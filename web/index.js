@@ -13,11 +13,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const url = 'http://localhost:8080/artist';
 
-    button.addEventListener("click", function (event) {
+    button.addEventListener("click", function () {
 
-        event.preventDefault();
-
-        console.log(textInput.value)
+        document.getElementById('artists-container').innerHTML = ""; // Clears screen on new search
 
         const fullURL = url + "?artist_name=" + textInput.value
         fetch(fullURL)
