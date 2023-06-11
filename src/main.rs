@@ -23,14 +23,14 @@ struct ArtistResponse {
 }
 
 #[get("/artist")]
-async fn artist() -> impl Responder {
-    let name = "test".to_string();
+async fn artist(query_params: web::Query<QueryParams>) -> impl Responder {
+    let name = query_params.artist_name.as_str();
     let spotify_artist_query: spotify::QueryResult = spotify::query_builder(
-        "test",
+        name,
         1,
     ).await;
     let spotify_artist: &spotify::Artists = spotify_artist_query.get_artist().unwrap();
-    let artist_response = ArtistResponse { name };
+    
 
     let json_response = serde_json::to_string(spotify_artist).unwrap();
 
@@ -80,3 +80,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 
+#[derive(serde::Deserialize)]
+struct QueryParams {
+    artist_name: String,
+}
