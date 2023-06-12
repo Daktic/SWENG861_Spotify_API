@@ -44,7 +44,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     followersElement.textContent = `Followers: ${artist.followers.total}`;
 
                     genresElement.setAttribute('class', 'artist-genres');
-                    const genres = artist.genres.join(', ')
+
+                    let genres;
+                    if (artist.genres.length < 1) {
+                        genres = 'None'
+                    } else {
+                        genres = artist.genres.join(', ')
+                    }
                     genresElement.textContent = `Genres: ${genres}`
 
                     const imageUrl = artist.images[1] ? artist.images[1].url : 'https://www.freepnglogos.com/images/spotify-logo-png-7053.html';
