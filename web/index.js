@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     // Set the content of the elements
                     nameElement.textContent = artist.name;
                     nameElement.setAttribute('class', 'artist-name');
-                    followersElement.textContent = `followers: ${artist.followers.total}`;
+                    followersElement.textContent = `Followers: ${artist.followers.total}`;
                     followersElement.setAttribute('class', 'artist-followers');
 
                     const imageUrl = artist.images[1] ? artist.images[1].url : 'https://www.freepnglogos.com/images/spotify-logo-png-7053.html';
@@ -50,10 +50,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Append the elements to the artist container
                     artistStats.appendChild(followersElement);
-                    artistItems.appendChild(nameElement);
+                    artistElement.appendChild(nameElement);
                     artistItems.appendChild(imageElement);
+                    artistItems.appendChild(artistStats);
                     artistElement.appendChild(artistItems);
-                    artistElement.appendChild(artistStats);
+
 
                     container.appendChild(artistElement);
                 });

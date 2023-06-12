@@ -15,6 +15,8 @@ p {
 body {
     background-color: #000000;
     font-family: "Arial", sans-serif;
+    margin-left: 8em;
+    margin-right: 8em;
 }
 
 #response-container {
@@ -50,12 +52,15 @@ button {
     border-radius: 4px;
     text-decoration: none;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 1px 1px 1px 1.5px #ffc600;
     transition: background-color 0.3s ease;
+    margin-top: 1em;
 }
 
 button:hover {
     background-color: #ffc600;
     cursor: pointer;
+    box-shadow: 1px 1px 1px 1.5px #ff4398;
 }
 
 input {
@@ -76,29 +81,36 @@ label {
 .artist-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    background-color: #f9f9f9;
-    padding: 10px;
-    border: 2px solid #be0d0d;
-    margin: 2px;
+    background-color: #3f3c3c;
+    padding: 1px;
+    box-shadow: 0px 0px 4px 4px rgba(255, 67, 152, 1);
+    margin: 5px 5px 15px 5px;
+}
+
+.artist-items {
+    display: inline-flex;
+    justify-content: space-between;
+    background: linear-gradient(to top, #fc6304, #ffc600);
 }
 
 .artist-name {
     display: flex;
+    align-self: center;
     justify-content: space-between;
 }
 
 .artist-image {
+    display: flex;
     width: 200px;
     height: 200px;
-    margin-bottom: 20px;
 }
 
 .artist-stats {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+    text-align: right;
     width: 100%;
+    margin-right: 3em;
 }
 
 .artist-followers {
