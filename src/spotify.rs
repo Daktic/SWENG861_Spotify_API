@@ -91,6 +91,13 @@ async fn get_artists(query_string: &str) -> Artists {
     artists
 }
 
+async fn get_songs(query_string: &str) -> Songs {
+    let song_ids = get_song_ids(query_string.as_ref()).await;
+    let mut songs = get_songs_details(&song_ids).await;
+    dbg!(&songs);
+    songs
+}
+
 async fn get_artist_ids(
     query_string: &str,
 ) -> SpotifyArtist {
@@ -153,6 +160,39 @@ async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
     artists
 }
 
+async fn get_songs_details(spotify_tracks: &SpotifyTrack) -> Songs {
+    dbg!(&spotify_tracks.tracks.items);
+    let songs = &spotify_tracks.tracks.items;
+
+    let mut tasks = vec![];
+
+    let song_vec = Arc::new(Mutex::new(vec![]));
+
+    for song in songs {
+        let song_id = song.id.clone(); // Clone the artist ID
+        let song_vec_clone = Arc::clone(&song_vec);
+
+        let task = task::spawn(async move {
+            let song_details = get_song_details(&song_id).await;
+
+            let mut lock = song_vec_clone.lock().unwrap();
+            lock.push(song_details);
+        });
+
+        tasks.push(task);
+    }
+
+    for task in tasks {
+        task.await.unwrap();
+    }
+
+    let songs = Songs {
+        songs: song_vec.lock().unwrap().clone(),
+    };
+
+    songs
+}
+
 async fn get_artist_details(artist_id: &str) -> Artist {
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
@@ -175,20 +215,39 @@ async fn get_artist_details(artist_id: &str) -> Artist {
     return artist;
 }
 
-async fn get_song_details(
+async fn get_song_details(song_id: &str) -> Song {
+    let client = create_client();
+    let access_credentials = get_access_credentials(&client).await;
+    let url = format!("https://api.spotify.com/v1/tracks/{song_id}");
+
+    let response = client
+        .get(url)
+        .header("AUTHORIZATION", "Bearer ".to_owned() + &access_credentials.access_token)
+        .header("CONTENT_TYPE", "application/json")
+        .header("ACCEPT", "application/json")
+        .send()
+        .await
+        .expect("Failed to execute get request")
+        .text()
+        .await.
+        unwrap();
+
+    let song: Song = serde_json::from_str(&response).unwrap();
+
+    return song;
+}
+
+async fn get_song_ids(
     query_string: &str,
-    client: &reqwest::Client,
-    access_credentials: &str,
 ) -> SpotifyTrack {
-    // let mut query_string = String::new();
-    // println!("Please enter the song you wish to query.");
-    // std::io::stdin().read_line(&mut query_string).unwrap();
+    let client = create_client();
+    let access_credentials = get_access_credentials(&client).await;
 
     let url = format!("https://api.spotify.com/v1/search?q={query}&type=track&offset=0&limit=20",
                       query = query_string);
     let response = client
         .get(url)
-        .header("AUTHORIZATION", "Bearer ".to_owned() + access_credentials)
+        .header("AUTHORIZATION", "Bearer ".to_owned() + &access_credentials.access_token)
         .header("CONTENT_TYPE", "application/json")
         .header("ACCEPT", "application/json")
         .send()
@@ -296,10 +355,21 @@ struct Tracks {
     items: Vec<TrackItems>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Songs {
+    songs: Vec<Song>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Song {
+    artists: Vec<Song>,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 struct TrackItems {
     album: AlbumItems,
     artists: Vec<TrackArtist>,
+    id: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
