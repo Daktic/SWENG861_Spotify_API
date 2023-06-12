@@ -53,7 +53,7 @@ async fn get_auth_code(
 
 pub enum QueryResult {
     QueryArtists(Artists),
-    Tracks(SpotifyTrack),
+    Tracks(Songs),
     Error,
 }
 
@@ -61,6 +61,12 @@ impl QueryResult {
     pub fn get_artist(&self) -> Option<&Artists> {
         match self {
             QueryResult::QueryArtists(artists) => Some(artists),
+            _ => None,
+        }
+    }
+    pub fn get_song(&self) -> Option<&Songs> {
+        match self {
+            QueryResult::Tracks(songs) => Some(songs),
             _ => None,
         }
     }
@@ -72,8 +78,8 @@ pub async fn query_builder(
 ) -> QueryResult {
     match type_of_search {
         1 => QueryResult::QueryArtists(get_artists(query).await),
-        //TODO make 2 like 1, remove the other params
-        2 => QueryResult::QueryArtists(get_artists(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
+        
+        2 => QueryResult::Tracks(get_songs(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
         _ => {
             println!("Not a proper search param.");
             // Return a default value or handle the invalid case accordingly

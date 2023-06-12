@@ -17,20 +17,25 @@ struct ArtistQueryParams {
     artist_name: String,
 }
 
+#[derive(serde::Deserialize)]
+struct SongQueryParams {
+    song_name: String,
+}
+
 #[derive(serde::Serialize)]
 struct ArtistResponse {
     name: String,
 }
 
 #[get("/artist")]
-async fn artist(query_params: web::Query<QueryParams>) -> impl Responder {
+async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
     let name = query_params.artist_name.as_str();
     let spotify_artist_query: spotify::QueryResult = spotify::query_builder(
         name,
         1,
     ).await;
     let spotify_artist: &spotify::Artists = spotify_artist_query.get_artist().unwrap();
-    
+
 
     let json_response = serde_json::to_string(spotify_artist).unwrap();
 
@@ -38,12 +43,24 @@ async fn artist(query_params: web::Query<QueryParams>) -> impl Responder {
         .content_type("application/json")
         .body(json_response)
 }
-// #[get("/artist")]
-// async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
-//     let name = query_params.artist_name.to_string(); // Replace "name" with the actual artist name
-//     println!("The name from the fetch request is {}", &name);
-//     HttpResponse::Ok().body(format!("Name: {}", name))
-// }
+
+#[get("/song")]
+async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
+    let name = query_params.song_name.as_str();
+    let spotify_song_query: spotify::QueryResult = spotify::query_builder(
+        name,
+        2,
+    ).await;
+    let spotify_song: &spotify::Songs = spotify_song_query.get_song().unwrap();
+
+
+    let json_response = serde_json::to_string(spotify_song).unwrap();
+
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(json_response)
+}
+
 
 async fn index(req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./web/index.html".parse().unwrap();
@@ -70,6 +87,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(middleware::Logger::default())
             .service(artist)
+            .service(song)
             .service(web::resource("/").to(index))
             .service(actix_files::Files::new("/", "./web").show_files_listing())
             .service(web::resource("/index.html").to(|| async { "Hello world!" }))
@@ -77,10 +95,4 @@ async fn main() -> std::io::Result<()> {
         .bind(("127.0.0.1", 8080))?
         .run()
         .await
-}
-
-
-#[derive(serde::Deserialize)]
-struct QueryParams {
-    artist_name: String,
 }
