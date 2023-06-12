@@ -24,6 +24,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Get the container element
                 const container = document.getElementById('artists-container');
 
+                console.log(data);
+
                 // Iterate over each artist object
                 data.artists.forEach(artist => {
                     // Create elements to display artist information
@@ -32,13 +34,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     const artistItems = document.createElement('div');
                     const nameElement = document.createElement('h2');
                     const followersElement = document.createElement('p');
+                    const genresElement = document.createElement('p');
                     const imageElement = document.createElement('img');
 
                     // Set the content of the elements
                     nameElement.textContent = artist.name;
                     nameElement.setAttribute('class', 'artist-name');
-                    followersElement.textContent = `Followers: ${artist.followers.total}`;
                     followersElement.setAttribute('class', 'artist-followers');
+                    followersElement.textContent = `Followers: ${artist.followers.total}`;
+
+                    genresElement.setAttribute('class', 'artist-genres');
+                    const genres = artist.genres.join(', ')
+                    genresElement.textContent = `Genres: ${genres}`
 
                     const imageUrl = artist.images[1] ? artist.images[1].url : 'https://www.freepnglogos.com/images/spotify-logo-png-7053.html';
                     imageElement.setAttribute('src', imageUrl)
@@ -50,6 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Append the elements to the artist container
                     artistStats.appendChild(followersElement);
+                    artistStats.appendChild(genresElement);
                     artistElement.appendChild(nameElement);
                     artistItems.appendChild(imageElement);
                     artistItems.appendChild(artistStats);
