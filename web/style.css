@@ -40,7 +40,12 @@ h3 {
     font-size: 24px;
     text-align: left;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    margin-bottom: 40px;
+    margin-bottom: 10px;
+}
+
+.explicit {
+    color: red;
+    text-shadow: black;
 }
 
 p {
@@ -83,7 +88,7 @@ label {
     color: white;
 }
 
-.artist-card {
+.artist-card, .song-card {
     display: flex;
     flex-direction: column;
     background-color: #3f3c3c;
@@ -92,25 +97,25 @@ label {
     margin: 5px 5px 15px 5px;
 }
 
-.artist-items {
+.artist-items, .song-items {
     display: inline-flex;
     justify-content: space-between;
     background: linear-gradient(to top, #fc6304, #ffc600);
 }
 
-.artist-name {
+.artist-name, .song-name {
     display: flex;
     align-self: center;
     justify-content: space-between;
 }
 
-.artist-image {
+.artist-image, .song_image {
     display: flex;
     width: 200px;
     height: 200px;
 }
 
-.artist-stats {
+.artist-stats, .song-stats {
     display: flex;
     justify-content: left;
     flex-direction: column;

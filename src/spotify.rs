@@ -101,7 +101,7 @@ async fn get_artists(query_string: &str) -> Artists {
 async fn get_songs(query_string: &str) -> Songs {
     let song_ids = get_song_ids(query_string.as_ref()).await;
     let mut songs = get_songs_details(&song_ids).await;
-    //dbg!(&songs);
+    songs.songs.sort_by(|a, b| b.album.popularity.cmp(&a.album.popularity));
     songs
 }
 
@@ -239,7 +239,7 @@ async fn get_song_details(song_id: &str) -> Song {
         .await.
         unwrap();
 
-    dbg!(&response);
+    //dbg!(&response);
     let song: Song = serde_json::from_str(&response).unwrap();
 
     return song;
@@ -389,6 +389,8 @@ pub struct Song {
     external_ids: AlbumItemExternalIds,
     external_urls: ExternalUrls,
     href: String,
+    id: String,
+    name: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
