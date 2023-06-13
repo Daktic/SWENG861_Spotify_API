@@ -78,7 +78,7 @@ pub async fn query_builder(
 ) -> QueryResult {
     match type_of_search {
         1 => QueryResult::QueryArtists(get_artists(query).await),
-        
+
         2 => QueryResult::Tracks(get_songs(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
         _ => {
             println!("Not a proper search param.");
@@ -93,14 +93,14 @@ async fn get_artists(query_string: &str) -> Artists {
     let artist_ids = get_artist_ids(query_string.as_ref()).await;
     let mut artists = get_artists_details(&artist_ids).await;
     // This line takes the artist:Artists and sorts the Artists.artists vec by followers in descending order.
-    artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total));
+    artists.artists.sort_by(|a, b| b.popularity.cmp(&a.popularity));
     artists
 }
 
 async fn get_songs(query_string: &str) -> Songs {
     let song_ids = get_song_ids(query_string.as_ref()).await;
     let mut songs = get_songs_details(&song_ids).await;
-    dbg!(&songs);
+    //dbg!(&songs);
     songs
 }
 
@@ -167,7 +167,7 @@ async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
 }
 
 async fn get_songs_details(spotify_tracks: &SpotifyTrack) -> Songs {
-    dbg!(&spotify_tracks.tracks.items);
+    //dbg!(&spotify_tracks.tracks.items);
     let songs = &spotify_tracks.tracks.items;
 
     let mut tasks = vec![];
@@ -238,6 +238,7 @@ async fn get_song_details(song_id: &str) -> Song {
         .await.
         unwrap();
 
+    //dbg!(&response);
     let song: Song = serde_json::from_str(&response).unwrap();
 
     return song;
@@ -298,7 +299,7 @@ struct QueryArtist {
     images: Vec<Image>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Artists {
     artists: Vec<Artist>,
 }
@@ -368,7 +369,26 @@ pub struct Songs {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Song {
-    artists: Vec<Song>,
+    album_type: String,
+    total_tracks: u16,
+    available_markets: Vec<String>,
+    external_urls: ExternalUrls,
+    href: String,
+    id: String,
+    images: Vec<Image>,
+    name: String,
+    release_date: String,
+    release_date_precision: String,
+    disc_number: u16,
+    duration_ms: u32,
+    explicit: bool,
+    external_ids: AlbumItemExternalIds,
+    artists: Vec<Artist>,
+    track_number: u16,
+    r#type: String,
+    uri: String,
+    popularity: Option<u32>,
+    preview_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -378,25 +398,25 @@ struct TrackItems {
     id: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct AlbumItemRestrictions {
     reason: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct AlbumItemCopyrights {
     text: String,
     r#type: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct AlbumItemExternalIds {
     isrc: String,
     ean: String,
     upc: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct AlbumItems {
     album_type: String,
     total_tracks: u16,

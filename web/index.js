@@ -11,13 +11,15 @@ document.addEventListener("DOMContentLoaded", function () {
         })
     });
 
-    const url = 'http://localhost:8080/artist';
+    //const url = 'http://localhost:8080/artist';
+    const url = 'http://localhost:8080/song';
 
     button.addEventListener("click", function () {
 
         document.getElementById('artists-container').innerHTML = ""; // Clears screen on new search
 
-        const fullURL = url + "?artist_name=" + textInput.value
+        //const fullURL = url + "?artist_name=" + textInput.value;
+        const fullURL = url + "?song_name=" + textInput.value;
         fetch(fullURL)
             .then(response => response.json())
             .then(data => {
