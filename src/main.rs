@@ -10,6 +10,7 @@ mod spotify;
 use actix_web::{middleware, web, App, HttpRequest, HttpServer, Result, HttpResponse, get, Responder, http};
 use actix_files::NamedFile;
 use std::path::PathBuf;
+use actix_web::http::StatusCode;
 use crate::spotify::Artists;
 
 #[derive(serde::Deserialize)]
@@ -51,7 +52,7 @@ async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
         name,
         2,
     ).await;
-    
+
     let spotify_song: &spotify::Songs = spotify_song_query.get_song().unwrap();
 
 

@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById('artists-container').innerHTML = ""; // Clears screen on new search
         document.getElementById('song-container').innerHTML = "";
+        document.getElementById('error-container').innerHTML = "";
 
         //const fullURL = url + "?artist_name=" + textInput.value;
         const fullURL = url + `?${query_type}_name=` + textInput.value;
@@ -52,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 console.log(data);
 
-                if (data.artists) {
+                if (data.artists && data.artists.length > 0) {
                     const container = document.getElementById('artists-container');
                     // Iterate over each artist object
                     data.artists.forEach(artist => {
@@ -105,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         container.appendChild(artistElement);
                     });
-                } else if (data.songs) {
+                } else if (data.songs && data.songs.length > 0) {
                     const container = document.getElementById('song-container');
                     // Iterate over each artist object
                     data.songs.forEach(song => {
@@ -162,10 +163,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         container.appendChild(songElement);
                     })
+                } else {
+                    const container = document.getElementById('error-container');
+
+                    const errTitleElement = document.createElement('h2');
+                    const errSubTitleElement = document.createElement('h3');
+
+                    errTitleElement.innerText = "Nothing Found!"
+                    errSubTitleElement.innerText = "Try another search"
+
+                    container.appendChild(errTitleElement);
+                    container.appendChild(errSubTitleElement);
                 }
             })
             .catch(error => {
                 // Handle any errors that occurred during the request
+                const container = document.getElementById('error-container');
+                const errorCard = document.createElement('div');
+                const errTitleElement = document.createElement('h2');
+                const errSubTitleElement = document.createElement('h3');
+                const errMessageElement = document.createElement('p');
+
+                errTitleElement.innerText = "Error!"
+                errSubTitleElement.innerText = "Something went wrong:"
+                errMessageElement.innerText = error;
+
+
+                errorCard.appendChild(errTitleElement);
+                errorCard.appendChild(errSubTitleElement);
+                errorCard.appendChild(errMessageElement);
+                container.appendChild(errorCard);
                 console.error(error);
             });
     });

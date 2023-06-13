@@ -126,7 +126,7 @@ async fn get_artist_ids(
         .await.
         unwrap();
 
-    // dbg!(&response);
+    dbg!(&response);
 
     let artists: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
     //dbg!(&artist_details);
