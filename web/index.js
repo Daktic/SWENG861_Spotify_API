@@ -5,21 +5,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const radioInputs = document.querySelectorAll('input[name="query-type"]');
 
+    let query_type = 'artist';
+    let url = `http://localhost:8080/${query_type}`;
+
+
     radioInputs.forEach((radioInput) => {
         radioInput.addEventListener("click", function () {
+            query_type = radioInput.value.toLowerCase();
+            url = `http://localhost:8080/${query_type}`; //IDK why i need to specify this here
+
             radio.innerText = `Search ${radioInput.value}`;
         })
     });
 
-    //const url = 'http://localhost:8080/artist';
-    const url = 'http://localhost:8080/song';
 
     button.addEventListener("click", function () {
 
         document.getElementById('artists-container').innerHTML = ""; // Clears screen on new search
 
         //const fullURL = url + "?artist_name=" + textInput.value;
-        const fullURL = url + "?song_name=" + textInput.value;
+        const fullURL = url + `?${query_type}_name=` + textInput.value;
         fetch(fullURL)
             .then(response => response.json())
             .then(data => {

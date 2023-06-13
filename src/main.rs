@@ -51,6 +51,7 @@ async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
         name,
         2,
     ).await;
+    
     let spotify_song: &spotify::Songs = spotify_song_query.get_song().unwrap();
 
 

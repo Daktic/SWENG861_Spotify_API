@@ -17,7 +17,7 @@ fn create_client() -> Client {
 }
 
 async fn get_access_credentials(client: &reqwest::Client) -> AccessCode {
-    dotenv::dotenv();
+    dotenv::dotenv().expect("Failed to load ENV");
     get_auth_code(
         client,
         &env::var("CLIENT_ID")
@@ -92,8 +92,9 @@ pub async fn query_builder(
 async fn get_artists(query_string: &str) -> Artists {
     let artist_ids = get_artist_ids(query_string.as_ref()).await;
     let mut artists = get_artists_details(&artist_ids).await;
+    println!("this should not print!");
     // This line takes the artist:Artists and sorts the Artists.artists vec by followers in descending order.
-    artists.artists.sort_by(|a, b| b.popularity.cmp(&a.popularity));
+    artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total));
     artists
 }
 
@@ -238,7 +239,7 @@ async fn get_song_details(song_id: &str) -> Song {
         .await.
         unwrap();
 
-    //dbg!(&response);
+    dbg!(&response);
     let song: Song = serde_json::from_str(&response).unwrap();
 
     return song;
@@ -318,6 +319,16 @@ struct Artist {
     uri: String,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct SongArtist {
+    external_urls: ExternalUrls,
+    href: String,
+    id: String,
+    name: String,
+    r#type: String,
+    uri: String,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 struct TrackArtist {
     external_urls: ExternalUrls,
@@ -369,26 +380,15 @@ pub struct Songs {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Song {
-    album_type: String,
-    total_tracks: u16,
+    album: AlbumItems,
+    artists: Vec<SongArtist>,
     available_markets: Vec<String>,
-    external_urls: ExternalUrls,
-    href: String,
-    id: String,
-    images: Vec<Image>,
-    name: String,
-    release_date: String,
-    release_date_precision: String,
-    disc_number: u16,
+    disc_number: u8,
     duration_ms: u32,
     explicit: bool,
     external_ids: AlbumItemExternalIds,
-    artists: Vec<Artist>,
-    track_number: u16,
-    r#type: String,
-    uri: String,
-    popularity: Option<u32>,
-    preview_url: Option<String>,
+    external_urls: ExternalUrls,
+    href: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -412,9 +412,10 @@ struct AlbumItemCopyrights {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct AlbumItemExternalIds {
     isrc: String,
-    ean: String,
-    upc: String,
+    ean: Option<String>,
+    upc: Option<String>,
 }
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct AlbumItems {
@@ -431,6 +432,7 @@ struct AlbumItems {
     restrictions: Option<Vec<AlbumItemRestrictions>>,
     r#type: String,
     uri: String,
+    followers: Option<Followers>,
     copyrights: Option<Vec<AlbumItemCopyrights>>,
     external_ids: Option<Vec<AlbumItemExternalIds>>,
     genres: Option<Vec<String>>,
