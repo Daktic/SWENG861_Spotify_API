@@ -31,6 +31,11 @@ document.addEventListener("DOMContentLoaded", function () {
         })
     });
 
+    button.disabled = textInput.value.trim() === '';
+
+    textInput.addEventListener('input', function () {
+        button.disabled = textInput.value.trim() === '';
+    });
 
     button.addEventListener("click", function () {
 
