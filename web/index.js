@@ -43,8 +43,9 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('song-container').innerHTML = "";
         document.getElementById('error-container').innerHTML = "";
 
-        //const fullURL = url + "?artist_name=" + textInput.value;
-        const fullURL = url + `?${query_type}_name=` + textInput.value;
+
+        const fullURL = url + `?${query_type}_name=` + encodeURIComponent(textInput.value);
+        console.log(fullURL)
         fetch(fullURL)
             .then(response => response.json())
             .then(data => {
@@ -186,14 +187,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 errTitleElement.innerText = "Error!"
                 errSubTitleElement.innerText = "Something went wrong:"
-                errMessageElement.innerText = error;
-
+                errMessageElement.innerText = error.toString();//not currently working
+                console.log(error.message);
 
                 errorCard.appendChild(errTitleElement);
                 errorCard.appendChild(errSubTitleElement);
                 errorCard.appendChild(errMessageElement);
                 container.appendChild(errorCard);
-                console.error(error);
             });
     });
 });

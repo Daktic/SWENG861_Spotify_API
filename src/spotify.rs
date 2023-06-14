@@ -301,11 +301,11 @@ struct QueryArtist {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Artists {
-    artists: Vec<Artist>,
+    pub artists: Vec<Artist>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-struct Artist {
+pub struct Artist {
     external_urls: ExternalUrls,
     followers: Followers,
     genres: Vec<String>,
@@ -374,7 +374,7 @@ struct Tracks {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Songs {
-    songs: Vec<Song>,
+    pub songs: Vec<Song>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

@@ -3,6 +3,7 @@ use dotenv::dotenv;
 use serde_json;
 use actix_cors::Cors;
 use serde::Serialize;
+use std::time::Instant;
 
 mod spotify;
 
@@ -31,12 +32,15 @@ struct ArtistResponse {
 #[get("/artist")]
 async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
     let name = query_params.artist_name.as_str();
+    log::info!("Searching {} in artists",&name);
+    let start = Instant::now();
     let spotify_artist_query: spotify::QueryResult = spotify::query_builder(
         name,
         1,
     ).await;
     let spotify_artist: &spotify::Artists = spotify_artist_query.get_artist().unwrap();
-
+    let elapsed = start.elapsed();
+    log::info!("found {} results in {:?}", spotify_artist.artists.len(), elapsed);
 
     let json_response = serde_json::to_string(spotify_artist).unwrap();
 
@@ -48,13 +52,16 @@ async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
 #[get("/song")]
 async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
     let name = query_params.song_name.as_str();
+    log::info!("Searching {} in songs",&name);
+    let start = Instant::now();
     let spotify_song_query: spotify::QueryResult = spotify::query_builder(
         name,
         2,
     ).await;
 
     let spotify_song: &spotify::Songs = spotify_song_query.get_song().unwrap();
-
+    let elapsed = start.elapsed();
+    log::info!("found {} results in {:?}", spotify_song.songs.len(), elapsed);
 
     let json_response = serde_json::to_string(spotify_song).unwrap();
 
