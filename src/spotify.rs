@@ -163,12 +163,12 @@ async fn get_artist_ids(
             log::info!("Error occurred during JSON deserialization: {}", error);
 
             // Try to deserialize the response into the error struct
-            if let Ok(error_response) = serde_json::from_str::<SpotifyErrorMessage>(&response) {
+            if let Ok(error_response) = serde_json::from_str::<SpotifyError>(&response) {
                 // dbg!(&error_response);
                 SpotifyError {
                     error: SpotifyErrorMessage {
-                        status: error_response.status,
-                        message: error_response.message,
+                        status: error_response.error.status,
+                        message: error_response.error.message,
                     },
                 }
             } else {
@@ -321,15 +321,14 @@ async fn get_song_ids(
             // Handle the deserialization error here
             log::info!("Error occurred during JSON deserialization: {}", error);
             // Try to deserialize the response into the error struct
-            if let Ok(error_response) = serde_json::from_str::<SpotifyErrorMessage>(&response) {
+            if let Ok(error_response) = serde_json::from_str::<SpotifyError>(&response) {
                 SpotifyError {
                     error: SpotifyErrorMessage {
-                        status: error_response.status,
-                        message: error_response.message,
+                        status: error_response.error.status,
+                        message: error_response.error.message,
                     },
                 }
             } else {
-                // dbg!(&error);
                 // Fallback to a generic error if the response doesn't match the expected error structure
                 SpotifyError {
                     error: SpotifyErrorMessage {
