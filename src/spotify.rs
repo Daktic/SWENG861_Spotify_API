@@ -217,39 +217,6 @@ async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
     artists
 }
 
-async fn get_songs_details(spotify_tracks: &SpotifyTrack) -> Songs {
-    //dbg!(&spotify_tracks.tracks.items);
-    let songs = &spotify_tracks.tracks.items;
-
-    let mut tasks = vec![];
-
-    let song_vec = Arc::new(Mutex::new(vec![]));
-
-    for song in songs {
-        let song_id = song.id.clone(); // Clone the artist ID
-        let song_vec_clone = Arc::clone(&song_vec);
-
-        let task = task::spawn(async move {
-            let song_details = get_song_details(&song_id).await;
-
-            let mut lock = song_vec_clone.lock().unwrap();
-            lock.push(song_details);
-        });
-
-        tasks.push(task);
-    }
-
-    for task in tasks {
-        task.await.unwrap();
-    }
-
-    let songs = Songs {
-        songs: song_vec.lock().unwrap().clone(),
-    };
-
-    songs
-}
-
 async fn get_artist_details(artist_id: &str) -> Artist {
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
@@ -270,29 +237,6 @@ async fn get_artist_details(artist_id: &str) -> Artist {
     let artist: Artist = serde_json::from_str(&response).unwrap();
 
     return artist;
-}
-
-async fn get_song_details(song_id: &str) -> Song {
-    let client = create_client();
-    let access_credentials = get_access_credentials(&client).await;
-    let url = format!("https://api.spotify.com/v1/tracks/{song_id}");
-
-    let response = client
-        .get(url)
-        .header("AUTHORIZATION", "Bearer ".to_owned() + &access_credentials.access_token)
-        .header("CONTENT_TYPE", "application/json")
-        .header("ACCEPT", "application/json")
-        .send()
-        .await
-        .expect("Failed to execute get request")
-        .text()
-        .await.
-        unwrap();
-
-    //dbg!(&response);
-    let song: Song = serde_json::from_str(&response).unwrap();
-
-    return song;
 }
 
 async fn get_song_ids(
@@ -340,6 +284,64 @@ async fn get_song_ids(
         });
     result
 }
+
+async fn get_songs_details(spotify_tracks: &SpotifyTrack) -> Songs {
+    //dbg!(&spotify_tracks.tracks.items);
+    let songs = &spotify_tracks.tracks.items;
+
+    let mut tasks = vec![];
+
+    let song_vec = Arc::new(Mutex::new(vec![]));
+
+    for song in songs {
+        let song_id = song.id.clone(); // Clone the artist ID
+        let song_vec_clone = Arc::clone(&song_vec);
+
+        let task = task::spawn(async move {
+            let song_details = get_song_details(&song_id).await;
+
+            let mut lock = song_vec_clone.lock().unwrap();
+            lock.push(song_details);
+        });
+
+        tasks.push(task);
+    }
+
+    for task in tasks {
+        task.await.unwrap();
+    }
+
+    let songs = Songs {
+        songs: song_vec.lock().unwrap().clone(),
+    };
+
+    songs
+}
+
+
+async fn get_song_details(song_id: &str) -> Song {
+    let client = create_client();
+    let access_credentials = get_access_credentials(&client).await;
+    let url = format!("https://api.spotify.com/v1/tracks/{song_id}");
+
+    let response = client
+        .get(url)
+        .header("AUTHORIZATION", "Bearer ".to_owned() + &access_credentials.access_token)
+        .header("CONTENT_TYPE", "application/json")
+        .header("ACCEPT", "application/json")
+        .send()
+        .await
+        .expect("Failed to execute get request")
+        .text()
+        .await.
+        unwrap();
+
+    //dbg!(&response);
+    let song: Song = serde_json::from_str(&response).unwrap();
+
+    return song;
+}
+
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct SpotifyError {
