@@ -32,17 +32,18 @@ struct ArtistResponse {
 #[get("/artist")]
 async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
     let name = query_params.artist_name.as_str();
-    log::info!("Searching {} in artists",&name);
+    log::info!("Searching {} in artists", &name);
     let start = Instant::now();
-    let spotify_artist_query: spotify::QueryResult = spotify::query_builder(
-        name,
-        1,
-    ).await;
-    let spotify_artist: &spotify::Artists = spotify_artist_query.get_artist().unwrap();
-    let elapsed = start.elapsed();
-    log::info!("found {} results in {:?}", spotify_artist.artists.len(), elapsed);
+    let spotify_artist_query: spotify::QueryResult = spotify::query_builder(name, 1).await;
 
-    let json_response = serde_json::to_string(spotify_artist).unwrap();
+    let elapsed = start.elapsed();
+    log::info!("found {} results in {:?}", spotify_artist_query.get_artist().map_or(0, |artists| artists.artists.len()), elapsed);
+
+    let json_response = match spotify_artist_query {
+        spotify::QueryResult::QueryArtists(artists) => serde_json::to_string(&artists).unwrap(),
+        spotify::QueryResult::SpotifyError(error) => serde_json::to_string(&error).unwrap(),
+        _ => String::from(""),
+    };
 
     HttpResponse::Ok()
         .content_type("application/json")

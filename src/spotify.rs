@@ -6,10 +6,13 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use reqwest::Client;
-use dotenv::dotenv;
+use dotenv::{dotenv};
 use std::env;
 use tokio::task;
 use std::sync::{Arc, Mutex};
+use futures::future::err;
+use log::log;
+use crate::ArtistResponse;
 
 
 fn create_client() -> Client {
@@ -54,7 +57,7 @@ async fn get_auth_code(
 pub enum QueryResult {
     QueryArtists(Artists),
     Tracks(Songs),
-    Error,
+    SpotifyError(SpotifyError),
 }
 
 impl QueryResult {
@@ -70,6 +73,12 @@ impl QueryResult {
             _ => None,
         }
     }
+    pub fn get_error(&self) -> Option<&SpotifyError> {
+        match self {
+            QueryResult::SpotifyError(error) => Some(error),
+            _ => None,
+        }
+    }
 }
 
 pub async fn query_builder(
@@ -77,24 +86,36 @@ pub async fn query_builder(
     type_of_search: u8,
 ) -> QueryResult {
     match type_of_search {
-        1 => QueryResult::QueryArtists(get_artists(query).await),
-
-        2 => QueryResult::Tracks(get_songs(query).await),//QueryResult::Tracks(get_song_details(query, client, access_credentials).await),
+        1 => {
+            match get_artists(query).await {
+                Ok(artists) => QueryResult::QueryArtists(artists),
+                Err(error) => QueryResult::SpotifyError(error),
+            }
+        }
+        2 => QueryResult::Tracks(get_songs(query).await),
         _ => {
             println!("Not a proper search param.");
-            // Return a default value or handle the invalid case accordingly
-            // Here, I'm returning an empty enum variant as an example
-            QueryResult::Error
+            QueryResult::SpotifyError(SpotifyError {
+                error: SpotifyErrorMessage {
+                    status: 400,
+                    message: "Invalid search parameter".to_string(),
+                },
+            })
         }
     }
 }
 
-async fn get_artists(query_string: &str) -> Artists {
+async fn get_artists(query_string: &str) -> Result<Artists, SpotifyError> {
     let artist_ids = get_artist_ids(query_string.as_ref()).await;
-    let mut artists = get_artists_details(&artist_ids).await;
-    // This line takes the artist:Artists and sorts the Artists.artists vec by followers in descending order.
-    artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total));
-    artists
+
+    match artist_ids {
+        Ok(ids) => {
+            let mut artists = get_artists_details(&ids).await;
+            artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total));
+            Ok(artists)
+        }
+        Err(err) => Err(err),
+    }
 }
 
 async fn get_songs(query_string: &str) -> Songs {
@@ -106,7 +127,7 @@ async fn get_songs(query_string: &str) -> Songs {
 
 async fn get_artist_ids(
     query_string: &str,
-) -> SpotifyArtist {
+) -> Result<SpotifyArtist, SpotifyError> {
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
 
@@ -125,13 +146,34 @@ async fn get_artist_ids(
         .await.
         unwrap();
 
-    dbg!(&response);
+    //dbg!(&response);
 
-    let artists: SpotifyArtist = serde_json::from_str(&response).expect("Failed to deserialize response");
-    //dbg!(&artist_details);
+    let result: Result<SpotifyArtist, SpotifyError> = serde_json::from_str(&response)
+        .map_err(|error| {
+            // Handle the deserialization error here
+            log::info!("Error occurred during JSON deserialization: {}", error);
 
-
-    return artists;
+            // Try to deserialize the response into the error struct
+            if let Ok(error_response) = serde_json::from_str::<SpotifyErrorMessage>(&response) {
+                // dbg!(&error_response);
+                SpotifyError {
+                    error: SpotifyErrorMessage {
+                        status: error_response.status,
+                        message: error_response.message,
+                    },
+                }
+            } else {
+                // dbg!(&error);
+                // Fallback to a generic error if the response doesn't match the expected error structure
+                SpotifyError {
+                    error: SpotifyErrorMessage {
+                        status: 500,
+                        message: "Unknown error occurred".to_string(),
+                    },
+                }
+            }
+        });
+    result
 }
 
 async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
@@ -270,6 +312,16 @@ async fn get_song_ids(
     return song_details;
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SpotifyError {
+    pub error: SpotifyErrorMessage,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SpotifyErrorMessage {
+    pub status: u16,
+    pub message: String,
+}
 
 #[derive(Deserialize, Debug)]
 pub struct AccessCode {
