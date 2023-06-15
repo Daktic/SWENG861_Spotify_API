@@ -169,12 +169,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     const errTitleElement = document.createElement('h2');
                     const errSubTitleElement = document.createElement('h3');
+                    const errMessageElement = document.createElement('p');
 
                     errTitleElement.innerText = "Nothing Found!"
                     errSubTitleElement.innerText = "Try another search"
+                    errMessageElement.innerText = data.error.message
 
                     container.appendChild(errTitleElement);
                     container.appendChild(errSubTitleElement);
+                    container.appendChild(errMessageElement);
                 }
             })
             .catch(error => {
@@ -187,8 +190,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 errTitleElement.innerText = "Error!"
                 errSubTitleElement.innerText = "Something went wrong:"
-                errMessageElement.innerText = error.toString();//not currently working
-                console.log(error.message);
+                errMessageElement.innerText = error.message
+                console.error(error);
 
                 errorCard.appendChild(errTitleElement);
                 errorCard.appendChild(errSubTitleElement);
