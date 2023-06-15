@@ -42,13 +42,11 @@ async fn get_auth_code(
     params.insert("client_secret", client_secret);
     let query_string = serde_urlencoded::to_string(params).unwrap();
 
-    // let url = format!("https://accounts.spotify.com/api/token?{}", query_string);
-    // dbg!(&url);
+
     let response = client.post("https://accounts.spotify.com/api/token")
         .header("Content-Type", "application/x-www-form-urlencoded")
         .body(query_string)
         .send().await;
-    //println!("In the async function");
     let auth_code = response.expect("REASON").text().await.unwrap();
     let access_credentials: AccessCode = serde_json::from_str(&auth_code).unwrap();
     access_credentials
@@ -92,7 +90,12 @@ pub async fn query_builder(
                 Err(error) => QueryResult::SpotifyError(error),
             }
         }
-        2 => QueryResult::Tracks(get_songs(query).await),
+        2 => {
+            match get_songs(query).await {
+                Ok(songs) => QueryResult::Tracks(songs),
+                Err(error) => QueryResult::SpotifyError(error),
+            }
+        }
         _ => {
             println!("Not a proper search param.");
             QueryResult::SpotifyError(SpotifyError {
@@ -118,11 +121,17 @@ async fn get_artists(query_string: &str) -> Result<Artists, SpotifyError> {
     }
 }
 
-async fn get_songs(query_string: &str) -> Songs {
+async fn get_songs(query_string: &str) -> Result<Songs, SpotifyError> {
     let song_ids = get_song_ids(query_string.as_ref()).await;
-    let mut songs = get_songs_details(&song_ids).await;
-    songs.songs.sort_by(|a, b| b.album.popularity.cmp(&a.album.popularity));
-    songs
+
+    match song_ids {
+        Ok(ids) => {
+            let mut songs = get_songs_details(&ids).await;
+            songs.songs.sort_by(|a, b| b.album.popularity.cmp(&a.album.popularity));
+            Ok(songs)
+        }
+        Err(err) => Err(err),
+    }
 }
 
 async fn get_artist_ids(
@@ -288,7 +297,7 @@ async fn get_song_details(song_id: &str) -> Song {
 
 async fn get_song_ids(
     query_string: &str,
-) -> SpotifyTrack {
+) -> Result<SpotifyTrack, SpotifyError> {
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
 
@@ -307,9 +316,30 @@ async fn get_song_ids(
         unwrap();
 
 
-    let song_details: SpotifyTrack = serde_json::from_str(&response).expect("Failed to deserialize response");
-
-    return song_details;
+    let result: Result<SpotifyTrack, SpotifyError> = serde_json::from_str(&response)
+        .map_err(|error| {
+            // Handle the deserialization error here
+            log::info!("Error occurred during JSON deserialization: {}", error);
+            // Try to deserialize the response into the error struct
+            if let Ok(error_response) = serde_json::from_str::<SpotifyErrorMessage>(&response) {
+                SpotifyError {
+                    error: SpotifyErrorMessage {
+                        status: error_response.status,
+                        message: error_response.message,
+                    },
+                }
+            } else {
+                // dbg!(&error);
+                // Fallback to a generic error if the response doesn't match the expected error structure
+                SpotifyError {
+                    error: SpotifyErrorMessage {
+                        status: 500,
+                        message: "Unknown error occurred".to_string(),
+                    },
+                }
+            }
+        });
+    result
 }
 
 #[derive(Deserialize, Serialize, Debug)]

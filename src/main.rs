@@ -60,11 +60,14 @@ async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
         2,
     ).await;
 
-    let spotify_song: &spotify::Songs = spotify_song_query.get_song().unwrap();
     let elapsed = start.elapsed();
-    log::info!("found {} results in {:?}", spotify_song.songs.len(), elapsed);
+    log::info!("found {} results in {:?}", spotify_song_query.get_song().map_or(0, |songs| songs.songs.len()), elapsed);
 
-    let json_response = serde_json::to_string(spotify_song).unwrap();
+    let json_response = match spotify_song_query {
+        spotify::QueryResult::Tracks(songs) => serde_json::to_string(&songs).unwrap(),
+        spotify::QueryResult::SpotifyError(error) => serde_json::to_string(&error).unwrap(),
+        _ => String::from(""),
+    };
 
     HttpResponse::Ok()
         .content_type("application/json")
