@@ -11,17 +11,26 @@
 <script src="./index.js"></script>
 <h1>Spotify <span>API</span></h1>
 <h2>Would you like to query a song or an artist?</h2>
-<input type="radio" name="query-type" value="Song" class="radio-input"/>
-<label for="song">Song</label>
+<div class="form-container">
+    <div class="radio-container">
+        <input type="radio" name="query-type" value="Song" class="radio-input"/>
+        <label for="song">Song</label>
 
-<input type="radio" name="query-type" value="Artist" checked class="radio-input"/>
-<label for="artist">Artist</label>
-<br/>
-<h3 id="query-type">Search Artist</h3>
-<input id="text-input" type="text" name="Query" required>
-<br/>
-<button id="submit-btn">Submit</button>
-<br/>
+        <input type="radio" name="query-type" value="Artist" checked class="radio-input"/>
+        <label for="artist">Artist</label>
+        <br/>
+    </div>
+
+    <h3 id="query-type">Search Artist</h3>
+    <div class="submit-container">
+        <input id="text-input" type="text" name="Query" required>
+        <br/>
+        <button id="submit-btn">Submit</button>
+        <br/>
+    </div>
+
+</div>
+
 <div id="response-container">
     <div id="artists-container"></div>
     <div id="song-container"></div>
