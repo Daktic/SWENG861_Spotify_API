@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                         genresElement.textContent = `Genres: ${genres}`
 
-                        const imageUrl = artist.images[1] ? artist.images[1].url : 'https://www.freepnglogos.com/images/spotify-logo-png-7053.html';
+                        const imageUrl = artist.images[1] ? artist.images[1].url : './images/error-404-artwork-not-found.webp';
                         imageElement.setAttribute('src', imageUrl)
                         imageElement.setAttribute('class', 'artist-image')
 
@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         albumNameElement.textContent = `Album: ${song.album.name}`;
                         albumNameElement.setAttribute('class', 'song-album-name');
 
-                        const imageUrl = song.album.images[1] ? song.album.images[1].url : 'https://www.freepnglogos.com/images/spotify-logo-png-7053.html';
+                        const imageUrl = song.album.images[1] ? song.album.images[1].url : './images/error-404-artwork-not-found.webp';
                         imageElement.setAttribute('src', imageUrl)
                         imageElement.setAttribute('class', 'song-image')
 
