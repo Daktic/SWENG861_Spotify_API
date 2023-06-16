@@ -127,7 +127,7 @@ async fn get_songs(query_string: &str) -> Result<Songs, SpotifyError> {
     match song_ids {
         Ok(ids) => {
             let mut songs = get_songs_details(&ids).await;
-            songs.songs.sort_by(|a, b| b.album.popularity.cmp(&a.album.popularity));
+            songs.songs.sort_by(|a, b| b.popularity.cmp(&a.popularity));
             Ok(songs)
         }
         Err(err) => Err(err),
@@ -473,6 +473,7 @@ pub struct Song {
     href: String,
     id: String,
     name: String,
+    popularity: u8,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
