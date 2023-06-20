@@ -14,6 +14,9 @@ use std::path::PathBuf;
 use actix_web::http::StatusCode;
 use crate::spotify::Artists;
 
+
+// These structs just handle passing data between the main and spotify binaries.
+
 #[derive(serde::Deserialize)]
 struct ArtistQueryParams {
     artist_name: String,
