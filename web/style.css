@@ -118,7 +118,7 @@ label {
     background: linear-gradient(to top, #fc6304, #ffc600);
 }
 
-.artist-name, .song-name {
+.artist-name, .song-name, .song-release {
     display: flex;
     align-self: center;
     justify-content: space-between;

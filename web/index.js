@@ -123,11 +123,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         const songLengthElement = document.createElement('p');
                         const songExplicitElement = document.createElement('p');
                         const genresElement = document.createElement('p');
+                        const albumReleaseElement = document.createElement('p');
                         const imageElement = document.createElement('img');
 
                         // Set the content of the elements
                         nameElement.textContent = song.name;
                         nameElement.setAttribute('class', 'song-name');
+                        albumReleaseElement.textContent = "Album Release: " + song.album.release_date;
+                        nameElement.setAttribute('class', 'song-release');
                         artistNameElement.textContent = "By: " + song.artists[0].name;
                         artistNameElement.setAttribute('class', 'artist-name');
 
@@ -155,6 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         songStats.appendChild(songLengthElement);
                         songStats.appendChild(genresElement);
                         songStats.appendChild(albumNameElement);
+                        songStats.appendChild(albumReleaseElement);
                         songStats.appendChild(songExplicitElement);
                         external_link.appendChild(nameElement);
                         songElement.appendChild(external_link);
