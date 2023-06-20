@@ -159,7 +159,7 @@ async fn get_artist_ids(
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
 
-    let url = format!("https://api.spotify.com/v1/search?q={query}&type=artist&offset=0&limit=50",
+    let url = format!("https://api.spotify.com/v1/search?q={query}&type=artist&offset=0&limit=3",
                       query = query_string);
 
     let response = client
@@ -268,7 +268,7 @@ async fn get_song_ids(
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
 
-    let url = format!("https://api.spotify.com/v1/search?q={query}&type=track&offset=0&limit=50",
+    let url = format!("https://api.spotify.com/v1/search?q={query}&type=track&offset=0&limit=3",
                       query = query_string);
     let response = client
         .get(url)
