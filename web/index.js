@@ -10,7 +10,7 @@ function formatTime(milliseconds) {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-
+// The DOMContentLoaded ensures to load the document before applying the event listeners.
 document.addEventListener("DOMContentLoaded", function () {
     const button = document.getElementById("submit-btn");
     const radio = document.getElementById("query-type");
@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let url = `http://localhost:8080/${query_type}`;
 
 
+    // Listens to the selection of the radio buttons
     radioInputs.forEach((radioInput) => {
         radioInput.addEventListener("click", function () {
             query_type = radioInput.value.toLowerCase();
@@ -33,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     button.disabled = textInput.value.trim() === '';
 
+    // I want to validate there is an input before sending over data.
     textInput.addEventListener('input', function () {
         button.disabled = textInput.value.trim() === '';
     });
@@ -44,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('error-container').innerHTML = "";
 
 
+        // Encodes any wierd characters to url safe.
         const fullURL = url + `?${query_type}_name=` + encodeURIComponent(textInput.value);
         console.log(fullURL)
         fetch(fullURL)
@@ -51,9 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 // Get the container element
 
-
-                console.log(data);
-
+                //check if the artists are returned
                 if (data.artists && data.artists.length > 0) {
                     const container = document.getElementById('artists-container');
                     // Iterate over each artist object
@@ -108,6 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         container.appendChild(artistElement);
                     });
                 } else if (data.songs && data.songs.length > 0) {
+                    // check if it is songs returned
                     const container = document.getElementById('song-container');
                     // Iterate over each artist object
                     data.songs.forEach(song => {
@@ -165,6 +167,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         container.appendChild(songElement);
                     })
                 } else {
+                    // handle other options
+                    // If there is an error on the server side, it will render here.
                     const container = document.getElementById('error-container');
 
                     const errTitleElement = document.createElement('h2');

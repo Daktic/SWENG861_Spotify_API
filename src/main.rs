@@ -29,6 +29,7 @@ struct ArtistResponse {
     name: String,
 }
 
+// The artist path. reads the query params and returns a data json with the artist.
 #[get("/artist")]
 async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
     let name = query_params.artist_name.as_str();
@@ -36,6 +37,7 @@ async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
     let start = Instant::now();
     let spotify_artist_query: spotify::QueryResult = spotify::query_builder(name, 1).await;
 
+    // records how long each query took to the server.
     let elapsed = start.elapsed();
     log::info!("found {} results in {:?}", spotify_artist_query.get_artist().map_or(0, |artists| artists.artists.len()), elapsed);
 
@@ -50,6 +52,7 @@ async fn artist(query_params: web::Query<ArtistQueryParams>) -> impl Responder {
         .body(json_response)
 }
 
+// The song path. reads the query params and returns a data json with the songs.
 #[get("/song")]
 async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
     let name = query_params.song_name.as_str();
@@ -60,6 +63,7 @@ async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
         2,
     ).await;
 
+    // records how long each query took to the server.
     let elapsed = start.elapsed();
     log::info!("found {} results in {:?}", spotify_song_query.get_song().map_or(0, |songs| songs.songs.len()), elapsed);
 
@@ -74,13 +78,13 @@ async fn song(query_params: web::Query<SongQueryParams>) -> impl Responder {
         .body(json_response)
 }
 
-
+// serves the index page.
 async fn index(req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./web/index.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
 }
 
-
+// The main function that attaches the methods to the web server.
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
