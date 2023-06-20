@@ -44,3 +44,10 @@ using the actix_web crate will allow to build a simple frontend if time permits.
 
 We will be querying the Spotify public API using a client ID and client Secret.
 
+## Project flowcharts
+
+
+<img width="516" alt="Screen Shot 2023-06-20 at 4 03 01 PM" src="https://github.com/Daktic/SWENG861_Spotify_API/assets/58493066/2075437c-2183-4be4-b3f4-d497300b8782">
+<img width="548" alt="Screen Shot 2023-06-20 at 4 21 46 PM" src="https://github.com/Daktic/SWENG861_Spotify_API/assets/58493066/02775192-d6b1-4c57-aa77-ec90e8d3ebe7">
+
+
