@@ -8,6 +8,19 @@ Users will be able to select what they wish to search for and a text box entry w
 them to type in a query that will return a list of items matching that query from the API.
 The response will be a JSON and that will manifest in the frontend.
 
+## How to run this project
+
+1. Visit the official Rust website at https://www.rust-lang.org/.
+    - Follow the installation instructions provided on the website for the chosen operating system.
+2. Clone or Download Program: https://github.com/Daktic/SWENG861_Spotify_API.git
+    - example : `git clone https://github.com/Daktic/SWENG861_Spotify_API.git`
+3. run the program from the terminal
+    - Navigate to the root directory of the program
+    - Run the following command to compile the Rust program:
+      `cargo build`
+    - Run the following command to run the Rust program:
+      `cargo run`
+
 ## Use Cases
 
 ### Artist Search
@@ -46,8 +59,5 @@ We will be querying the Spotify public API using a client ID and client Secret.
 
 ## Project flowcharts
 
-
 <img width="516" alt="Screen Shot 2023-06-20 at 4 03 01 PM" src="https://github.com/Daktic/SWENG861_Spotify_API/assets/58493066/2075437c-2183-4be4-b3f4-d497300b8782">
 <img width="548" alt="Screen Shot 2023-06-20 at 4 21 46 PM" src="https://github.com/Daktic/SWENG861_Spotify_API/assets/58493066/02775192-d6b1-4c57-aa77-ec90e8d3ebe7">
-
-
