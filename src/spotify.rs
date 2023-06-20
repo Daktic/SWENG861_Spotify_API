@@ -14,12 +14,15 @@ use futures::future::err;
 use log::log;
 use crate::ArtistResponse;
 
-
+// Returns an instance of the reqwest client
 fn create_client() -> Client {
     reqwest::Client::new()
 }
 
+// Takes a Client and uses environmental variables to return access credentials from Spotify.
+// Abstracts away the authorization process
 async fn get_access_credentials(client: &reqwest::Client) -> AccessCode {
+    // Loads in environmental variables from .env file
     dotenv::dotenv().expect("Failed to load ENV");
     get_auth_code(
         client,
@@ -30,12 +33,12 @@ async fn get_access_credentials(client: &reqwest::Client) -> AccessCode {
     ).await
 }
 
+// The method that takes in the parameters needed to return the authorization code used in API calls.
 async fn get_auth_code(
     client: &reqwest::Client,
     client_id: &str,
     client_secret: &str,
 ) -> AccessCode {
-    //println!("In the async function");
     let mut params = HashMap::new();
     params.insert("grant_type", "client_credentials");
     params.insert("client_id", client_id);
@@ -52,25 +55,30 @@ async fn get_auth_code(
     access_credentials
 }
 
+// Enumeration of possible outcomes when Querying for Data.
 pub enum QueryResult {
     QueryArtists(Artists),
     Tracks(Songs),
     SpotifyError(SpotifyError),
 }
 
+// Functions implemented on the Enum
 impl QueryResult {
+    // Returns Artists
     pub fn get_artist(&self) -> Option<&Artists> {
         match self {
             QueryResult::QueryArtists(artists) => Some(artists),
             _ => None,
         }
     }
+    // Returns Songs
     pub fn get_song(&self) -> Option<&Songs> {
         match self {
             QueryResult::Tracks(songs) => Some(songs),
             _ => None,
         }
     }
+    // This never gets used, but i think it could be useful in a future implementation.
     pub fn get_error(&self) -> Option<&SpotifyError> {
         match self {
             QueryResult::SpotifyError(error) => Some(error),
@@ -79,6 +87,8 @@ impl QueryResult {
     }
 }
 
+// This is a higher level abstraction that gets called with the arguments that get passed down.
+// This function returns the Enum to be used Later.
 pub async fn query_builder(
     query: &str,
     type_of_search: u8,
@@ -108,12 +118,15 @@ pub async fn query_builder(
     }
 }
 
+// A function that takes in a string and returns a list of artists returned by spotify.
+// It does a sort of the result based on the number of followers before returning the Artists struct.
 async fn get_artists(query_string: &str) -> Result<Artists, SpotifyError> {
     let artist_ids = get_artist_ids(query_string.as_ref()).await;
 
     match artist_ids {
         Ok(ids) => {
             let mut artists = get_artists_details(&ids).await;
+            // Sorts by total followers
             artists.artists.sort_by(|a, b| b.followers.total.cmp(&a.followers.total));
             Ok(artists)
         }
@@ -121,12 +134,16 @@ async fn get_artists(query_string: &str) -> Result<Artists, SpotifyError> {
     }
 }
 
+// A function that takes in a string and returns a list of songs returned by spotify.
+// It does a sort of the result based on the popularity before returning the Songs struct.
+// Popularity is a rating given by spotify as a means to categorize based on interest.
 async fn get_songs(query_string: &str) -> Result<Songs, SpotifyError> {
     let song_ids = get_song_ids(query_string.as_ref()).await;
 
     match song_ids {
         Ok(ids) => {
             let mut songs = get_songs_details(&ids).await;
+            // Sorts by popularity
             songs.songs.sort_by(|a, b| b.popularity.cmp(&a.popularity));
             Ok(songs)
         }
@@ -134,6 +151,8 @@ async fn get_songs(query_string: &str) -> Result<Songs, SpotifyError> {
     }
 }
 
+// In order to get info from specific Artist, we must get a list of the Ids returned from the request to Spotify.
+// This makes an HTTP request to Spotify's API to get the SpotifyArtist Object, which contains the IDs.
 async fn get_artist_ids(
     query_string: &str,
 ) -> Result<SpotifyArtist, SpotifyError> {
@@ -155,8 +174,6 @@ async fn get_artist_ids(
         .await.
         unwrap();
 
-    //dbg!(&response);
-
     let result: Result<SpotifyArtist, SpotifyError> = serde_json::from_str(&response)
         .map_err(|error| {
             // Handle the deserialization error here
@@ -172,7 +189,6 @@ async fn get_artist_ids(
                     },
                 }
             } else {
-                // dbg!(&error);
                 // Fallback to a generic error if the response doesn't match the expected error structure
                 SpotifyError {
                     error: SpotifyErrorMessage {
@@ -185,6 +201,9 @@ async fn get_artist_ids(
     result
 }
 
+// With the artists passed to this function, we take the ID out and get details concurrently of each artist.
+// The Artist are then serialized into the Artist Struct
+// Each artist is passed into a Vec which is Serialized into the Artists struct, and returned.
 async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
     let artists = &spotify_artist.artists.items;
 
@@ -217,6 +236,8 @@ async fn get_artists_details(spotify_artist: &SpotifyArtist) -> Artists {
     artists
 }
 
+// This takes in the string ID of the Artist, and returns the details associated with it, which is returned
+// as the Artist Struct
 async fn get_artist_details(artist_id: &str) -> Artist {
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
@@ -239,6 +260,8 @@ async fn get_artist_details(artist_id: &str) -> Artist {
     return artist;
 }
 
+// In order to get info from specific Song, we must get a list of the Ids returned from the request to Spotify.
+// This makes an HTTP request to Spotify's API to get the SpotifyTrack Object, which contains the IDs.
 async fn get_song_ids(
     query_string: &str,
 ) -> Result<SpotifyTrack, SpotifyError> {
@@ -285,6 +308,8 @@ async fn get_song_ids(
     result
 }
 
+// With the SpotifyTrack passed to this function, we take the ID out and get details concurrently of each song.
+// The individual Songs are passed into a Vec which is Serialized into the Songs struct, and returned.
 async fn get_songs_details(spotify_tracks: &SpotifyTrack) -> Songs {
     //dbg!(&spotify_tracks.tracks.items);
     let songs = &spotify_tracks.tracks.items;
@@ -318,7 +343,7 @@ async fn get_songs_details(spotify_tracks: &SpotifyTrack) -> Songs {
     songs
 }
 
-
+// A base level API call to Spotify using the Song's Id, and returning the a Song struct.
 async fn get_song_details(song_id: &str) -> Song {
     let client = create_client();
     let access_credentials = get_access_credentials(&client).await;
